@@ -133,7 +133,7 @@ public:
         greatestValueSort();
 	}
 
-    CellObject* search(char t_searchObject, int t_objectNumber, int t_searchValue)              
+    CellObject* search(char t_searchObject, int t_objectNumber, int t_searchValue)
     {
         t_searchObject = toupper(t_searchObject);
         if (!((t_searchObject == 'R') || (t_searchObject == 'C') || (t_searchObject == 'B')))
@@ -146,7 +146,7 @@ public:
         }
         switch (t_searchObject)
         {
-        case 'R':                                                                               
+        case 'R':
             return m_rowList[t_objectNumber].locate(t_searchValue);
             break;
         case 'C':
