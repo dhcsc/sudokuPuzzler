@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <string>
+#include <algorithm>
 #pragma once
 
 class CellObject {						//contains all the data for a single square in a sudoku puzzle
@@ -18,12 +19,18 @@ private:
     int m_block{ 0 };
     bool m_possibleValues[9]{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-public:
     void consolePrint() {
         std::cout << "Row: " << m_row << std::endl;
         std::cout << "Column: " << m_column << std::endl;
         std::cout << "Value: " << m_value << std::endl;
         std::cout << "Block: " << m_block << std::endl;
+    }
+    void initialize(int t_value, int t_row, int t_column, int t_block)
+    {
+        m_value = t_value;
+        m_row = t_row + 1;
+        m_column = t_column + 1;
+        m_block = t_block;
     }
 };
 
@@ -31,9 +38,16 @@ class CellGroup {
     friend class PuzzleObject;
 private:
     CellObject* m_cellPosition[9]{ nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-    bool m_emptyCellList[9]{ 0,0,0,0,0,0,0,0,0 };
+    bool m_emptyCellList[9]{ 1,1,1,1,1,1,1,1,1 };
 
-public:
+    void assignCell(int t_position, CellObject* t_address)
+    {
+        m_cellPosition[t_position] = t_address;
+        if (t_address->m_value != 0) 
+        {
+            m_emptyCellList[t_position] = false;
+        }
+    }
     CellObject* locate(int t_sValue)            //searches CellGroup for a Value
     {
         if (t_sValue < 1 || t_sValue > 9)
@@ -51,83 +65,77 @@ public:
     }
 };
 
-class PuzzleObject {					//comment 
+class PuzzleObject { 
     
 private:
 	CellObject m_cellGrid[9][9];
 	CellGroup m_rowList[9];
 	CellGroup m_columnList[9];
 	CellGroup m_blockList[9];
-    const int m_suppBlockList[9][4]{1,2,3,6, 0,2,4,7, 0,1,5,8, 0,4,5,6, 1,3,5,7, 2,3,4,8, 0,3,7,8, 1,4,6,8, 2,5,6,7};
+    const int m_suppBlockList[9][4]{1,2,3,6, 0,2,4,7, 0,1,5,8, 0,4,5,6, 1,3,5,7, 2,3,4,8, 0,3,7,8, 1,4,6,8, 2,5,6,7};   //list of each blocks neighbors
     int m_valueCount[10]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };					//list of each instance of a value within the puzzle, maintained with each solved cell
     int m_greatestValueList[9]{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };			    //sorted list of which values have the most instances, updated once per cycle through all 9 values
 
 public:
 	PuzzleObject(int t_inputValues[9][9]) {
-        int blockPositionHelper = 1;                                        //helps to set each cells address in the correct position within each block
-        //int helper = 0;
+        int whichBlock = 0;                                                 //helps to set each cells' block value
+        int blockPosition = 0;                                              //helps to set each cells address in the correct position within each block
         for (int rowCounter = 0; rowCounter < 9; rowCounter++)              //steps through each row for intialization
         {
             for (int colCounter = 0; colCounter < 9; colCounter++)          //steps through each column for intialization
             {
-                m_cellGrid[rowCounter][colCounter].m_value = t_inputValues[rowCounter][colCounter];
-                m_cellGrid[rowCounter][colCounter].m_row = rowCounter + 1;
-                m_cellGrid[rowCounter][colCounter].m_column = colCounter + 1;
-
-                if (m_cellGrid[rowCounter][colCounter].m_row <= 3)          //sets block value for each cell
+                if (rowCounter <= 2)          //sets block value for each cell
                 {
-                    if (m_cellGrid[rowCounter][colCounter].m_column <= 3) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 1;
+                    if (colCounter <= 2) {
+                        whichBlock = 1;
                     }
-                    else if (m_cellGrid[rowCounter][colCounter].m_column >= 4 && m_cellGrid[rowCounter][colCounter].m_column <= 6) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 2;
+                    else if (colCounter >= 3 && colCounter <= 5) {
+                        whichBlock = 2;
                     }
                     else {
-                        m_cellGrid[rowCounter][colCounter].m_block = 3;
+                        whichBlock = 3;
                     }
                 }
-                else if (m_cellGrid[rowCounter][colCounter].m_row >= 4 && m_cellGrid[rowCounter][colCounter].m_row <= 6)
+                else if (rowCounter >= 3 && rowCounter <= 5)
                 {
-                    if (m_cellGrid[rowCounter][colCounter].m_column <= 3) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 4;
+                    if (colCounter <= 2) {
+                        whichBlock = 4;
                     }
-                    else if (m_cellGrid[rowCounter][colCounter].m_column >= 4 && m_cellGrid[rowCounter][colCounter].m_column <= 6) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 5;
+                    else if (colCounter >= 3 && colCounter <= 5) {
+                        whichBlock = 5;
                     }
                     else {
-                        m_cellGrid[rowCounter][colCounter].m_block = 6;
+                        whichBlock = 6;
                     }
                 }
                 else
                 {
-                    if (m_cellGrid[rowCounter][colCounter].m_column <= 3) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 7;
+                    if (colCounter <= 2) {
+                        whichBlock = 7;
                     }
-                    else if (m_cellGrid[rowCounter][colCounter].m_column >= 4 && m_cellGrid[rowCounter][colCounter].m_column <= 6) {
-                        m_cellGrid[rowCounter][colCounter].m_block = 8;
+                    else if (colCounter >= 3 && colCounter <= 5) {
+                        whichBlock = 8;
                     }
                     else {
-                        m_cellGrid[rowCounter][colCounter].m_block = 9;
+                        whichBlock = 9;
                     }
                 }
 
-                //helper = t_inputValues[rowCounter][colCounter];
-                m_valueCount[t_inputValues[rowCounter][colCounter]] += 1;      //counts the number of each value that is present in the intial puzzle
+                m_cellGrid[rowCounter][colCounter].initialize(t_inputValues[rowCounter][colCounter], rowCounter, colCounter, whichBlock);     //sets up cell with value, row, column, and block data
+                m_rowList[rowCounter].assignCell(colCounter, &m_cellGrid[rowCounter][colCounter]);
+                m_columnList[colCounter].assignCell(rowCounter, &m_cellGrid[rowCounter][colCounter]);
+                m_blockList[whichBlock - 1].assignCell(blockPosition, &m_cellGrid[rowCounter][colCounter]);
 
-                m_rowList[rowCounter].m_cellPosition[colCounter] = &m_cellGrid[rowCounter][colCounter];
-                m_columnList[colCounter].m_cellPosition[rowCounter] = &m_cellGrid[rowCounter][colCounter];
-                //m_blockList[m_cellGrid[rowCounter][colCounter].m_block - 1].m_cellPosition[blockPositionHelper - 1] = &m_cellGrid[rowCounter][colCounter];
+                m_valueCount[t_inputValues[rowCounter][colCounter]]++;      //counts the number of each value that is present in the intial puzzle
 
-                blockPositionHelper++;                                      //value steps in 3 number increments    1,2,3      4,5,6       7,8,9
-                if (blockPositionHelper % 3 == 1) {
-                    blockPositionHelper -= 3;
+                blockPosition++;                                      //value steps in 3 number increments    0,1,2      3,4,5       6,7,8
+                if (blockPosition % 3 == 0) {
+                    blockPosition -= 3;
                 }
-
-                m_blockList[m_cellGrid[rowCounter][colCounter].m_block - 1].m_cellPosition[0] = &m_cellGrid[rowCounter][colCounter];  //puts address of current cell in the correct spot in the correct block
             }
-            blockPositionHelper += 3;                                       //pushes value into next set
-            if (blockPositionHelper == 10) {                                //resets value back into first set
-                blockPositionHelper -= 9;
+            blockPosition += 3;                                       //pushes value into next set
+            if (blockPosition == 9) {                                 //resets value back into first set
+                blockPosition -= 9;
             }
         }
         greatestValueSort();
@@ -203,16 +211,70 @@ public:
         std::cout << std::endl;
     }
 
-    void solveBlockSupport (int solvingBlock, int t_solveValue)
+    int solveBlockSupport (int t_solvingBlockID, int t_solveValue)     //clean up needed, variable names unclear
     {
-        bool possibleCell[9] = { 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1};
-        for (int lcv = 0; lcv < 9; lcv++)
+        bool emptyCell[9]{};
+        int totalEmptyCell = 0;
+        int solveLocation = 0;
+        std::copy(m_blockList[t_solvingBlockID].m_emptyCellList, m_blockList[t_solvingBlockID].m_emptyCellList + 9, emptyCell);
+
+        for (int neighborBlock = 0; neighborBlock < 4; neighborBlock++)
         {
-            if (m_blockList[solvingBlock].m_cellPosition[lcv]->m_value > 0)
+            int supportBlock = m_suppBlockList[t_solvingBlockID][neighborBlock];
+            CellObject* supportCell = m_blockList[supportBlock].locate(t_solveValue);
+            if (supportCell != nullptr)
             {
-                possibleCell[lcv] = false;
+                for (int crossCheck = 0; crossCheck < 9; crossCheck++)
+                {
+                    if (emptyCell[crossCheck])
+                    {
+                        if (m_blockList[t_solvingBlockID].m_cellPosition[crossCheck]->m_row == supportCell->m_row ||
+                            m_blockList[t_solvingBlockID].m_cellPosition[crossCheck]->m_column == supportCell->m_column)
+                        {
+                            emptyCell[crossCheck] = 0;
+                        }
+                    }
+                }
             }
         }
+        for (int solveCell = 0; solveCell < 9; solveCell++)
+        {
+            if (emptyCell[solveCell])
+            {
+                totalEmptyCell++;
+                solveLocation = solveCell;
+            }
+        }
+        if (totalEmptyCell == 1)
+        {
+            m_blockList[t_solvingBlockID].m_cellPosition[solveLocation]->m_value = t_solveValue;
+            m_blockList[t_solvingBlockID].m_emptyCellList[solveLocation] = false;
+            m_valueCount[t_solveValue]++;
+            consolePrint();
+            std::cout << "Solved cell r " << m_blockList[t_solvingBlockID].m_cellPosition[solveLocation]->m_row << " c " << m_blockList[t_solvingBlockID].m_cellPosition[solveLocation]->m_column << std::endl;
+            return 1;
+        }
+        else 
+        {
+            return 0;
+        }
+    }
+    void solve()
+    {
+        int solveCount = 0;
+        for (int greatestValueLoop = 0; greatestValueLoop < 9; greatestValueLoop++)
+        {
+            int solveValue = m_greatestValueList[greatestValueLoop];
+            for (int solveCursorBlock = 0; solveCursorBlock < 9; solveCursorBlock++)
+            {
+                CellObject* solveCursor = m_blockList[solveCursorBlock].locate(solveValue);
+                if (solveCursor == nullptr)
+                {
+                    solveCount += solveBlockSupport(solveCursorBlock, solveValue);
+                }
+            }
+        }
+        greatestValueSort();
     }
     /*void printValueCount() {
         for (int lcv = 0; lcv < 10; lcv++) {

@@ -19,11 +19,12 @@ int main()
     PuzzleObject puzzle(input);
 
     //puzzle.consoleCellPrint(6, 1);
-    //test Git
 
     puzzle.consolePrint();
-
-    puzzle.solveBlockSupport(0, 2);
+    while (1)
+    {
+        puzzle.solve();
+    }
     return 0;
 }
 
